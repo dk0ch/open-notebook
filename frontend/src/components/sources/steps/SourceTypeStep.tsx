@@ -105,10 +105,10 @@ export function SourceTypeStep({ control, register, errors }: SourceTypeStepProp
                         id="file"
                         type="file"
                         {...register('file')}
-                        accept=".pdf,.doc,.docx,.txt,.md,.epub"
+                        accept=".pdf,.doc,.docx,.txt,.md,.epub,.mp4,.avi,.mov,.wmv,.mp3,.wav,.m4a,.aac,.pptx,.ppt,.xlsx,.xls,.jpg,.jpeg,.png,.tiff,.zip,.tar,.gz"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Supported formats: PDF, DOC, DOCX, TXT, MD, EPUB
+                        Supported formats: PDF, DOC, DOCX, TXT, MD, EPUB, MP4, MP3, WAV, M4A, PPT, XLS, Images, Archives
                       </p>
                       {errors.file && (
                         <p className="text-sm text-destructive mt-1">{errors.file.message}</p>
