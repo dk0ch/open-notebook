@@ -1,6 +1,6 @@
 [project]
 name = "open-notebook"
-version = "1.0.10"
+version = "1.0.11"
 description = "An open source implementation of a research assistant, inspired by Google Notebook LM"
 authors = [
     {name = "Luis Novo", email = "lfnovo@gmail.com"}
@@ -65,7 +65,8 @@ build-backend = "setuptools.build_meta"
 [dependency-groups]
 dev = [
     "pre-commit>=4.1.0",
-    "types-requests>=2.32.4.20250913"
+    "pytest-asyncio>=1.2.0",
+    "types-requests>=2.32.4.20250913",
 ]
 
 [tool.isort]
