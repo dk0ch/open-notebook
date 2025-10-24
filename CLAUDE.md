@@ -161,6 +161,39 @@ Open Notebook uses the **Esperanto** library for multi-provider AI abstraction. 
 
 Configuration is via environment variables in `.env`. Models are selected in the UI (Settings → Models).
 
+### ⚠️ Known Issues with AI Providers
+
+**Esperanto v2.7.1 Bug with Anthropic Models:**
+- When using Claude models for transformations/chat, you may encounter: `anthropic.BadRequestError: 'temperature' and 'top_p' cannot both be specified`
+- **Root cause:** Esperanto passes both `temperature=1.0` and `top_p=0.9` when converting Anthropic models to LangChain format, which Anthropic's API rejects
+- **Workaround:** Use OpenAI GPT models instead of Claude for:
+  - `default_transformation_model`
+  - `large_context_model` (used when content >105k tokens)
+  - `default_tools_model`
+  - `default_chat_model`
+- **How to fix:** Update model defaults via API or UI (Settings → Models)
+- **Note:** This bug may be fixed in future Esperanto versions
+
+### Timeout Configuration for Long Processing
+
+**Audio/Video Transcription Timeouts:**
+- Long audio files (>10 minutes) may timeout with default settings
+- **Symptom:** `httpx.ReadTimeout` during Whisper API transcription
+- **Fix:** Add to `.env`:
+  ```bash
+  ESPERANTO_LLM_TIMEOUT=600  # 10 minutes for audio/video transcription
+  ```
+- **When to increase:**
+  - Audio files >15 minutes: 900 seconds (15 min)
+  - Audio files >30 minutes: 1200 seconds (20 min)
+- **Important:** Restart all services after changing timeout: `make stop-all && make start-all`
+
+**Model Cache Behavior:**
+- Model configurations are cached in running processes
+- **When you change model defaults, you MUST restart services** to clear the cache
+- Simply saving new defaults in the UI is not enough - old models remain in memory
+- Always run `make stop-all && make start-all` after model configuration changes
+
 ## Database Migrations
 
 Migrations are SurrealQL files in `migrations/` directory, numbered sequentially (1.surrealql, 2.surrealql, etc.).
@@ -190,6 +223,33 @@ When a source is uploaded:
 - Runtime config loaded from `/api/runtime-config` (sets `API_URL` for deployments)
 - Authentication: Bearer token in `Authorization` header (if `OPEN_NOTEBOOK_PASSWORD` set)
 - CORS enabled for local development (localhost:3000 ↔ localhost:5055)
+
+### Next.js API Proxy Configuration
+
+**Important:** Next.js requires explicit rewrites to proxy API requests to the FastAPI backend in development.
+
+The configuration in `frontend/next.config.ts` should include:
+
+```typescript
+async rewrites() {
+  return [
+    {
+      source: '/api/:path*',
+      destination: process.env.API_URL || 'http://localhost:5055/api/:path*',
+    },
+  ]
+},
+```
+
+**Without this configuration:**
+- Frontend API calls to `/api/*` will return 404 errors
+- Chat, source processing, and all API interactions will fail
+- Direct API calls to `localhost:5055` will work, but frontend calls to `localhost:3000/api/*` won't
+
+**Verification:**
+Test the proxy is working with: `curl http://localhost:3000/api/models`
+
+**Note:** This is only required for local development. In production Docker, the API runs on the same domain so no proxy is needed.
 
 ## Important File Locations
 
